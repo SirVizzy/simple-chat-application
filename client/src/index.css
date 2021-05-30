@@ -1,0 +1,13 @@
+html, body, #root, #root > div {
+  height: 100%
+}
+
+#root {
+  vertical-align: center;
+}
+
+.messages {
+  height: 500px;
+  overflow: auto;
+  padding-right: 8px;
+}
