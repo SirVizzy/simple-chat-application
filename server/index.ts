@@ -99,23 +99,21 @@ function listen() {
 
     // All incoming chat messages.
     socket.on('message', async (messageText: string, callback: Function) => {
+      // As a simple antiflood feature we will only allow up to 3 messages
+      // from the same user at the same time.
+      if (messages.slice(messages.length - 3, messages.length).every((i) => i.user.id === user.id))
+        return callback("You've sent 3 messages in a row, calm down buddy.");
+
       try {
-        // As a simple antiflood feature we will only allow up to 3 messages
-        // from the same user at the same time.
-        if (messages.slice(messages.length - 3, messages.length).every((i) => i.user.id === user.id)) {
-          return callback("You've sent 3 messages in a row, calm down buddy.");
-        }
-
-        await database.query('INSERT INTO messages(message, username, user_id) VALUES (?)', [[messageText, user.username, user.id]]);
-
         const message: Message = {
           user,
           message: messageText,
         };
         if (messages.length >= 100) messages.shift();
         messages.push(message);
-
         io.sockets.emit('message', message);
+
+        await database.query('INSERT INTO messages(message, username, user_id) VALUES (?)', [[messageText, user.username, user.id]]);
       } catch (err) {
         console.log(err);
       }
